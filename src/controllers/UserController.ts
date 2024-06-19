@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { ResultSetHeader } from "mysql2";
 import { db } from "../app";
 import { generateToken } from "../helpers/token";
-import { IUser } from "../types";
+import { ExtendedRequest, IUser } from "../types";
 
 export const registerUser = async (req: Request, res: Response) => {
   const { username, email, password, role = "USER" } = req.body as IUser;
@@ -41,7 +41,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const [data] = await db.query(sql, [username, email, hashedPassword, role]);
 
     const info = data as ResultSetHeader;
-    const token = generateToken({ id: info.insertId });
+    const token = generateToken({ id: info.insertId, role });
 
     res.status(200).json({ message: "User registered", token });
   } catch (error) {
@@ -76,7 +76,7 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const token = generateToken({ id: user.id });
+    const token = generateToken({ id: user.id, role: user.role });
 
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {
@@ -85,8 +85,8 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export const checkAuth = (req: Request, res: Response) => {
+export const checkAuth = (req: ExtendedRequest, res: Response) => {
   return res
     .status(200)
-    .json({ isAuth: true, message: "User is authenticated" });
+    .json({ isAuth: true, role: req.userKey?.role, message: "User is authenticated" });
 };
