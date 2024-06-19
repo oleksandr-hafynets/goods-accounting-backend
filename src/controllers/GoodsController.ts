@@ -3,12 +3,16 @@ import { ResultSetHeader } from "mysql2";
 import { db } from "../app";
 import { IGoods } from "../types";
 
-export const createGood = async (req: Request, res: Response) => {
+export const createGood = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { title, description, price, count, image, category } =
     req.body as IGoods;
 
   if (!title || !price || !count || !image || !category) {
-    return res.status(400).json({ message: "All fields are required" });
+    res.status(400).json({ message: "All fields are required" });
+    return;
   }
 
   try {
@@ -34,7 +38,10 @@ export const createGood = async (req: Request, res: Response) => {
 };
 
 // Get all goods
-export const getAllGoods = async (_req: Request, res: Response) => {
+export const getAllGoods = async (
+  _req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const [rows] = await db.query("SELECT * FROM GOODS");
     res.status(200).json(rows);
@@ -45,7 +52,10 @@ export const getAllGoods = async (_req: Request, res: Response) => {
 };
 
 // Get a single good by ID
-export const getGoodById = async (req: Request, res: Response) => {
+export const getGoodById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -53,7 +63,8 @@ export const getGoodById = async (req: Request, res: Response) => {
     const goods = rows as IGoods[];
 
     if (!goods.length) {
-      return res.status(404).json({ message: "Good not found" });
+      res.status(404).json({ message: "Good not found" });
+      return;
     }
 
     res.status(200).json(goods[0]);
@@ -64,13 +75,17 @@ export const getGoodById = async (req: Request, res: Response) => {
 };
 
 // Update a good
-export const updateGood = async (req: Request, res: Response) => {
+export const updateGood = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const { title, description, price, count, image, category } =
     req.body as IGoods;
 
   if (!title || !price || !count || !image || !category) {
-    return res.status(400).json({ message: "All fields are required" });
+    res.status(400).json({ message: "All fields are required" });
+    return;
   }
 
   try {
@@ -91,7 +106,8 @@ export const updateGood = async (req: Request, res: Response) => {
     const info = result as ResultSetHeader;
 
     if (info.affectedRows === 0) {
-      return res.status(404).json({ message: "Good not found" });
+      res.status(404).json({ message: "Good not found" });
+      return;
     }
 
     res.status(200).json({ message: "Good updated" });
@@ -102,7 +118,10 @@ export const updateGood = async (req: Request, res: Response) => {
 };
 
 // Delete a good
-export const deleteGood = async (req: Request, res: Response) => {
+export const deleteGood = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -111,7 +130,8 @@ export const deleteGood = async (req: Request, res: Response) => {
     const info = result as ResultSetHeader;
 
     if (info.affectedRows === 0) {
-      return res.status(404).json({ message: "Good not found" });
+      res.status(404).json({ message: "Good not found" });
+      return;
     }
 
     res.status(200).json({ message: "Good deleted" });

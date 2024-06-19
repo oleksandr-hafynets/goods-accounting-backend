@@ -5,22 +5,28 @@ import { db } from "../app";
 import { generateToken } from "../helpers/token";
 import { ExtendedRequest, IUser } from "../types";
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { username, email, password, role = "USER" } = req.body as IUser;
 
   if (!username || !email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    res.status(400).json({ message: "All fields are required" });
+    return;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ message: "Invalid email address" });
+    res.status(400).json({ message: "Invalid email address" });
+    return;
   }
 
   if (username.length < 5) {
-    return res
+    res
       .status(400)
       .json({ message: "Username must be at least 5 characters long" });
+    return;
   }
 
   try {
@@ -31,7 +37,8 @@ export const registerUser = async (req: Request, res: Response) => {
     const users = rows as IUser[];
 
     if (users.length) {
-      return res.status(400).json({ message: "User already exists" });
+      res.status(400).json({ message: "User already exists" });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -50,13 +57,12 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required" });
+    res.status(400).json({ message: "Username and password are required" });
+    return;
   }
 
   try {
@@ -66,14 +72,16 @@ export const loginUser = async (req: Request, res: Response) => {
     const users = rows as IUser[];
 
     if (!users.length) {
-      return res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "User not found" });
+      return;
     }
 
     const user = users[0];
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      return res.status(401).json({ message: "Invalid password" });
+      res.status(401).json({ message: "Invalid password" });
+      return;
     }
 
     const token = generateToken({ id: user.id, role: user.role });
@@ -85,8 +93,10 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export const checkAuth = (req: ExtendedRequest, res: Response) => {
-  return res
-    .status(200)
-    .json({ isAuth: true, role: req.userKey?.role, message: "User is authenticated" });
+export const checkAuth = (req: ExtendedRequest, res: Response): void => {
+  res.status(200).json({
+    isAuth: true,
+    role: req.userKey?.role,
+    message: "User is authenticated",
+  });
 };
